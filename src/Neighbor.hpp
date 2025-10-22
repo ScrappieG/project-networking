@@ -13,20 +13,22 @@ private:
 	int sock_;
 	int num_pieces_;
 	std::string ip_;
+	bool has_file_;
 
+	int peer_id_;
 	bool choked_;
 	bool interested_;
 	std::vector<uint8_t> bitfield_;//stores a byte per index
 
 public:
-	Neighbor(int sock, uint16_t port, int num_pieces, std::string ip)
-		: port_(port),
-		sock_(sock),
-		num_pieces_(num_pieces), 
+	Neighbor(int sock, uint16_t port, std::string ip, int peer_id, bool has_file)
+		: sock_(sock), 
+		port_(port), 
 		ip_(std::move(ip)),
+		peer_id_(peer_id),
 		choked_(true),
 		interested_(false),
-		bitfield_((num_pieces+7) / 8, 0){}
+		has_file_(has_file){}
 
 	~Neighbor() {
 		if (sock_ >= 0){
@@ -47,16 +49,22 @@ public:
 	Neighbor(Neighbor&& other) noexcept
 		:port_(other.port_),
 		sock_(other.sock_),
+		ip_(other.ip_),
+		peer_id_(other.peer_id_),
 		num_pieces_(other.num_pieces_),
 		choked_(other.choked_),
 		interested_(other.interested_),
+		has_file_(other.has_file_),
 		bitfield_(std::move(other.bitfield_)){
 		
 		other.sock_ = -1;
 		other.port_ = 0;
+		other.ip_ = "";
+		other.peer_id_ = 0;
 		other.num_pieces_ = 0;
 		other.choked_ = true;
 		other.interested_ = false;
+		other.has_file_ = false;
 	}
 
 	//overrights assignment operator (again so that we dont shoot ourselves in the foot c++ :D)
@@ -70,14 +78,17 @@ public:
 			sock_ = other.sock_;
 			num_pieces_ = other.num_pieces_;
 			ip_ = std::move(other.ip_);
+			peer_id_ = other.peer_id_;
 			choked_ = other.choked_;
 			interested_ = other.interested_;
+			has_file_ = other.has_file_;
 			bitfield_ = std::move(other.bitfield_);
 			other.sock_ = -1;
 			other.port_ = 0;
 			other.num_pieces_ = 0;
 			other.choked_ = true;
 			other.interested_ = false;
+			other.has_file_ = false;
 		}
 		return *this;
 	}
@@ -88,10 +99,13 @@ public:
 	bool choked() const { return choked_; }
 	bool interested() const { return interested_; }
 	std::vector<uint8_t> bitfield() const { return bitfield_; }
+	bool has_file(){ return has_file_; }
+	uint32_t peer_id(){return peer_id_;}
 
 	//setters
 	void set_interested(bool val){ this->interested_ = val;}
 	void set_choked(bool val){ this->choked_ = val; }
+	void set_has_file(bool val){ this->has_file_ = val;}
 	
 
 };

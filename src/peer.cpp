@@ -13,6 +13,23 @@
 #include <netdb.h>
 #include <vector>
 
+Neighbor* P2P_Client::find_neighbor_by_id(uint32_t id){
+	for (auto* n : neighbors_){
+      		if (n->peer_id() == id){
+			return n;
+      		}
+	}
+      	return nullptr;
+}
+
+Neighbor* P2P_Client::find_neighbor_by_sock(int sock){
+	auto it = sock_to_peer_.find(sock);
+	if (it == sock_to_peer_.end()){
+		return nullptr;
+	}
+	return find_neighbor_by_id(it->second);
+}
+      
 int P2P_Client::listen_on(){
 	//Uses TCP, IPv4 (unsure if it should be IPv4)
 	int s = socket(AF_INET, SOCK_STREAM, 0);
@@ -232,6 +249,51 @@ bool P2P_Client::send_handshake(int sock, uint32_t peer_id){
 	return send_exact(sock, buf, sizeof(buf));
 }
 
+bool P2P_Client::read_handshake(int sock, std::string ip, uint16_t other_port, uint32_t expected_peer_id, bool has_file){
+	char start_buf[18];
+	if (!read_exact(sock, start_buf, 18)){
+		return false;
+	}
+	
+	const char f[19] = "P2PFILESHARINGPROJ";
+	
+	if (std::memcmp(start_buf, f, 18) != 0){//does first 18 bits == expected (P2P...)
+		return false;
+	}
+	
+	char zero_buf[10];
+	if(!read_exact(sock, zero_buf, sizeof(zero_buf))){
+		return false;
+	}
+
+	for (char c: zero_buf){
+		if (c != 0){
+		      return false;
+		}
+	}
+
+	char id_buf[4];
+	if (!read_exact(sock, id_buf, sizeof(id_buf))){
+		return false;
+	}
+	uint32_t net_peer_id = 0;
+	std::memcpy(&net_peer_id, id_buf, 4);
+
+	uint32_t peer_id = ntohl(net_peer_id);
+
+	if (peer_id != expected_peer_id){
+		return false;
+	}
+
+	{
+		std::lock_guard<std::mutex> lck(peers_mu_);
+		sock_to_peer_[sock] = peer_id;
+	}
+
+	return on_new_connection(sock, ip, other_port, expected_peer_id, has_file);
+}
+
+
 bool P2P_Client::read_handshake(int sock, std::string ip, uint16_t other_port){
 	char start_buf[18];
 	if (!read_exact(sock, start_buf, 18)){
@@ -264,19 +326,31 @@ bool P2P_Client::read_handshake(int sock, std::string ip, uint16_t other_port){
 
 	uint32_t peer_id = ntohl(net_peer_id);
 
-	on_new_connection(sock, ip, other_port, peer_id);
-	return true;
+	bool init_has_file = false;
+
+	{
+		std::lock_guard<std::mutex> lck(peers_mu_);
+		auto it = neighbor_has_file.find(peer_id);
+		if (it != neighbor_has_file.end()){
+			init_has_file = it->second;
+		}
+		sock_to_peer_[sock] = peer_id;
+	}
+
+	return on_new_connection(sock, ip, other_port, peer_id, init_has_file);
+	
 }
 
-void P2P_Client::addNeighbor(int sock, std::string ip, uint16_t port, uint32_t peer_id){
+
+void P2P_Client::addNeighbor(int sock, std::string ip, uint16_t port, uint32_t peer_id, bool has_file){
 	std::lock_guard<std::mutex> l(peers_mu_); //lock the peers vector (THIS IS IMPORTANT FOR THREADING)
-	neighbors_.push_back(new Neighbor(sock, port, peer_id, ip));
+	neighbors_.push_back(new Neighbor(sock, port,ip, peer_id, has_file));
 }
 
-
-bool P2P_Client::on_new_connection(int sock, std::string ip, uint16_t port, uint32_t peer_id){
-	addNeighbor(sock, ip, port, peer_id);	
+bool P2P_Client::on_new_connection(int sock, std::string ip, uint16_t port, uint32_t peer_id, bool has_file){
+	addNeighbor(sock, ip, port, peer_id, has_file);	
 	//once connnection is established send bitfield message
+	
 	uint32_t bitfield_len = bitfield_.size();
 	if (!send_message(BITFIELD, bitfield_.data(), bitfield_len, sock)){
 		return false;
@@ -315,6 +389,7 @@ void P2P_Client::accept_loop(){
 		uint16_t other_port = ntohs(other_addr.sin_port);
 		
 		std::string ip = std::string(ip_str);
+
 		if (!read_handshake(cfd, ip, other_port)){
 			close(cfd);
 			continue;
@@ -327,7 +402,7 @@ void P2P_Client::accept_loop(){
 }
 
 //accept and handshake outgoing connection
-bool P2P_Client::connect_and_handshake(std::string ip, uint16_t other_port){
+bool P2P_Client::connect_and_handshake(std::string ip, uint16_t other_port, int peer_id, bool has_file){
 	int conn = connect_to(ip, other_port);
 
 	if (conn < 0){
@@ -338,7 +413,7 @@ bool P2P_Client::connect_and_handshake(std::string ip, uint16_t other_port){
 		close(conn);
 		return false;
 	}
-	if (!read_handshake(conn, ip, other_port)){
+	if (!read_handshake(conn, ip, other_port,peer_id, has_file)){
 		close(conn);
 		return false;
 	}
@@ -383,7 +458,48 @@ bool P2P_Client::read_piece(int sock, std::vector<char> buf){
 }
 
 bool P2P_Client::read_bitfield(int sock, std::vector<char> buf){
-	//TODO
+	//updates the hasFile of the neighbor
+	set_hasFile_from_bf(sock, buf);
+	//TODO update the actual bitfield of the neighbor
 	return true;
 }
+
+//sets whether or not the neighbor has the entire file (by looking if its bitmap is full of 1s)
+bool P2P_Client::set_hasFile_from_bf(int sock, std::vector<char> buf){
+	const size_t num_pieces = static_cast<size_t>(total_pieces_);
+
+	if (buf.empty() || num_pieces == 0){
+		return true;
+	}
+
+	bool entire_file = true;
+
+	for (size_t i = 0; i < num_pieces; ++i){
+		size_t byte = i/8;
+		size_t bit = 7- (i % 8);
+
+		if (byte >= buf.size()){
+			entire_file = false;
+			break;
+		}
+
+		unsigned char b = static_cast<unsigned char>(buf[byte]);
+		bool bit_set = ((b >> bit) & 1) != 0;
+		if (!bit_set){
+			entire_file = false;
+			break;
+		}
+	}
+
+	std::lock_guard<std::mutex> lck(peers_mu_);
+	Neighbor* n = find_neighbor_by_sock(sock);
+	if (n != nullptr){
+		n->set_has_file(true);
+		return true;
+		}
+	return false;
+		
+
+}
+
 	
