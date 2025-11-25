@@ -1,4 +1,5 @@
 #pragma once
+#include <cstddef>
 #include <string>
 #include <array>
 #include <cstdint>
@@ -101,11 +102,43 @@ public:
 	std::vector<uint8_t> bitfield() const { return bitfield_; }
 	bool has_file(){ return has_file_; }
 	uint32_t peer_id(){return peer_id_;}
+	std::vector<uint8_t>& get_bitfield() { return bitfield_; }
 
 	//setters
 	void set_interested(bool val){ this->interested_ = val;}
 	void set_choked(bool val){ this->choked_ = val; }
 	void set_has_file(bool val){ this->has_file_ = val;}
+
+	void set_piece(int piece_index, bool value){
+		size_t byte = piece_index / 8;
+		size_t bit = 7 - (piece_index % 8);
+
+		if (byte >= bitfield_.size()){
+			return;
+		}
+
+		if (value){
+			bitfield_[byte] |= (1 << bit);
+		} else {
+			bitfield_[byte] &= ~(1 << bit);
+		}
+	}
+	
+	bool has_piece(int piece_index) const{
+		size_t byte = piece_index / 8;
+		size_t bit = 7 - (piece_index % 8);
+
+		if (byte >= bitfield_.size()){
+			return false;
+		}
+
+		unsigned char b = static_cast<unsigned char>(bitfield_[byte]);
+		return ((b >> bit) & 1) != 0;
+	}
+
+	void init_bitfield(int num_pieces){
+		bitfield_.resize((num_pieces + 7) / 8, 0x00);
+	}
 	
 
 };
