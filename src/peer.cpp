@@ -1,6 +1,7 @@
 #include "Peer.hpp"
 #include "Header.hpp"
 #include "Neighbor.hpp"
+#include "config.h"
 #include <cstddef>
 #include <cstdint>
 #include <map>
@@ -36,6 +37,7 @@ int P2P_Client::listen_on(){
 	//Uses TCP, IPv4 (unsure if it should be IPv4)
 	int s = socket(AF_INET, SOCK_STREAM, 0);
 	if (s < 0) {
+		logger_->line("Peer " + std::to_string(my_peer_id_) + " failed to create listening socket.");
 		perror("failed while creating socket");
 		return -1;
 	}
@@ -43,6 +45,7 @@ int P2P_Client::listen_on(){
 	int opt = 1;
 	int set_s = setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 	if (set_s < 0){
+		logger_->line("Peer " + std::to_string(my_peer_id_) + " failed to set socket options.");
 		perror("failed setting socket");
 		//maybe return idk
 	}
@@ -52,17 +55,25 @@ int P2P_Client::listen_on(){
 	addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	addr.sin_port = htons(port_);
 	
-	if (::bind(s, (sockaddr*)&addr, sizeof(addr)) < 0){ // the :: is to tell clang to use the global bind not std::bind (which happens on macOS atleast for me)
+	if (::bind(s, (sockaddr*)&addr, sizeof(addr)) < 0){
 		perror("Failed to bind");
+		logger_->line("Peer " + std::to_string(my_peer_id_) + " failed to bind listening socket to port " + std::to_string(port_) + ".");
 		close(s);
 		return -1;
 	}
 
+	std::cerr << "DEBUG: bind() succeeded on socket " << s << std::endl; 
+
 	if (listen(s, 128) < 0){
 		perror("Failed to listen");
+		logger_->line("Peer " + std::to_string(my_peer_id_) + " failed to listen on socket.");
 		close(s);
 		return -1;
 	}
+
+	logger_->line("Peer " + std::to_string(my_peer_id_) + " is listening for incoming connections on port " + std::to_string(port_) + ".");
+	std::cerr << "DEBUG listen_on(): Socket " << s << " is now LISTENING on port " << port_ << std::endl;
+
 	return s;
 
 }
@@ -82,6 +93,7 @@ void P2P_Client::stop_listening() {
 	if (accept_thread_.joinable()){
 		accept_thread_.join();
 	}
+	logger_->line("Peer " + std::to_string(my_peer_id_) + " has stopped listening for incoming connections.");
 }
 
 
@@ -113,7 +125,9 @@ int P2P_Client::connect_to(std::string peer_ip, uint16_t peer_port){
 	freeaddrinfo(result);
 	if (s < 0){
 		perror("connect");
+		logger_->line("Peer " + std::to_string(my_peer_id_) + " failed to connect to " + peer_ip + ":" + std::to_string(peer_port) + ".");
 	}
+	logger_->line("Peer " + std::to_string(my_peer_id_) + " connected to " + peer_ip + ":" + std::to_string(peer_port) + ".");
 	return s;
 }
 
@@ -244,6 +258,8 @@ bool P2P_Client::send_handshake(int sock, uint32_t peer_id){
 	std::memset(buf+18, 0, 10); //zeros
 	uint32_t net_peer_id = htonl(peer_id);
 	std::memcpy(buf+28, &net_peer_id, 4);
+
+	logger_->line("Peer " + std::to_string(my_peer_id_) + " sent handshake to Peer " + std::to_string(peer_id) + ".");
 	return send_exact(sock, buf, sizeof(buf));
 }
 
@@ -288,7 +304,8 @@ bool P2P_Client::read_handshake(int sock, std::string ip, uint16_t other_port, u
 		sock_to_peer_[sock] = peer_id;
 	}
 
-	return on_new_connection(sock, ip, other_port, expected_peer_id, has_file);
+	//return on_new_connection(sock, ip, other_port, expected_peer_id, has_file);
+	return true;
 }
 
 
@@ -309,7 +326,7 @@ bool P2P_Client::read_handshake(int sock, std::string ip, uint16_t other_port){
 		return false;
 	}
 
-	for (char c: zero_buf){
+	for (char c : zero_buf){
 		if (c != 0){
 		      return false;
 		}
@@ -335,7 +352,8 @@ bool P2P_Client::read_handshake(int sock, std::string ip, uint16_t other_port){
 		sock_to_peer_[sock] = peer_id;
 	}
 
-	return on_new_connection(sock, ip, other_port, peer_id, init_has_file);
+	//return on_new_connection(sock, ip, other_port, peer_id, init_has_file);
+	return true;
 	
 }
 
@@ -354,6 +372,7 @@ bool P2P_Client::on_new_connection(int sock, std::string ip, uint16_t port, uint
 		return false;
 	}
 
+	logger_->line("Peer " + std::to_string(my_peer_id_) + " connected to Peer " + std::to_string(peer_id) + ".");
 	start_peer_message_loop(sock);
 	return true;
 	
@@ -361,6 +380,7 @@ bool P2P_Client::on_new_connection(int sock, std::string ip, uint16_t port, uint
 
 //accepting incoming connections
 void P2P_Client::accept_loop(){
+	logger_->line("Peer " + std::to_string(my_peer_id_) + " started accepting incoming connections.");
 	while(accepting_){
 		
 		sockaddr_in other_addr{};
@@ -397,7 +417,10 @@ void P2P_Client::accept_loop(){
 		if (!send_handshake(cfd, my_peer_id_)){
 			close(cfd);
 		}
-	
+
+		uint32_t remote_peer_id = sock_to_peer_[cfd];
+		bool has_file = false;
+		on_new_connection(cfd, ip, other_port, remote_peer_id, has_file);
 	}
 }
 
@@ -417,6 +440,8 @@ bool P2P_Client::connect_and_handshake(std::string ip, uint16_t other_port, int 
 		close(conn);
 		return false;
 	}
+
+	on_new_connection(conn, ip, other_port, peer_id, has_file);
 
 	return true;
 
@@ -797,6 +822,10 @@ bool P2P_Client::write_piece_to_file(int piece_index, std::vector<char>& piece_d
 }
 
 bool P2P_Client::has_piece_on_disk(int piece_index) const {
+	std::cerr << "DEBUG: has_piece_on_disk(" << piece_index << ") called" << std::endl;
+	std::string piece_file = Config::peerDirName(my_peer_id_) + "/" + file_name_;
+    std::cerr << "DEBUG: Checking file: " << piece_file << std::endl;
+
 	std::lock_guard<std::mutex> lck(file_mu_);
 
 	size_t offset = static_cast<size_t>(piece_index) * piece_size_;

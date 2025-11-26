@@ -80,8 +80,6 @@ int main(int argc, char *argv[]){
         myInfo.hasFile,
         nInfo
     );
-
-    client.start_listening();
     
     std::cout << "Peer " << peerId << " is running on port " << myInfo.port << std::endl;
     std::cout << "Check log: log_peer_" << peerId << ".log" << std::endl;

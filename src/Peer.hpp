@@ -13,6 +13,7 @@
 #include <unordered_map>
 #include <set>
 #include <fstream>
+#include<iostream>
 
 //helper struct for initializing clients neighbors
 struct InitNeighborInfo {
@@ -93,19 +94,34 @@ public:
 		has_file_(has_file),
 		num_pref_neighbors_(num_pref_neighbors),
 		unchoking_interval_(unchoking_interval),
-		listening_sock_(0),
+		listening_sock_(-1),
 		file_name_(file_name),
 		file_size_(file_size),
 		piece_size_(piece_size),
 		accepting_(false) {
 
 		total_pieces_ = ceiling_divide(file_size_, piece_size_);
+
+		logger_ = new Logger("log_peer_" + std::to_string(my_peer_id_) + ".log");
+
+		std::cerr << "Peer " << my_peer_id_ << " connecting to neighbors..." << std::endl;
 		
 		for (const auto n : neighbor_info){
-			connect_and_handshake(n.host, n.port, n.peerId, n.hasFile);
+			std::cerr << "Peer " << my_peer_id_ << " connecting to Peer " << n.peerId << " at " << n.host << ":" << n.port << "..." << std::endl;
+			bool success = connect_and_handshake(n.host, n.port, n.peerId, n.hasFile);
+    
+			if (!success) {
+				std::cerr << "WARNING: Failed to connect to peer " << n.peerId 
+						<< " - peer may not be running yet" << std::endl;
+				// Continue anyway - it's okay if some peers aren't ready yet
+			} else {
+				std::cerr << "Successfully connected to peer " << n.peerId << std::endl;
+			}
 		}
-		//TODO
-		//this is implace for actually reading bits into the bitmap from the file
+
+		std::cerr << "Peer " << my_peer_id_ << " connected to all neighbors." << std::endl;
+
+		std::cerr << "Peer " << my_peer_id_ << " initializing file..." << std::endl;
 
 		//initialize bitfield
 		if (has_file_){
@@ -119,21 +135,42 @@ public:
 
 		} else {
 			bitfield_.resize((total_pieces_ + 7) / 8, 0x00);
+
+			std::cerr << "DEBUG: Bitfield resized to " << bitfield_.size() << " bytes" << std::endl;
+    		std::cerr << "DEBUG: Checking " << total_pieces_ << " pieces..." << std::endl;
     
 			// check disk for pieces we might already have
 			for (int i = 0; i < total_pieces_; i++) {
+				if (i % 10 == 0) {  // Every 10th piece
+            		std::cerr << "DEBUG: Checking piece " << i << "..." << std::endl;
+        		}
 				if (has_piece_on_disk(i)) {
 					set_bitfield_bit(i, true);
 				}
 			}
+			std::cerr << "DEBUG: Finished checking pieces" << std::endl;
 		}
+
+		std::cerr << "Peer " << my_peer_id_ << " setting up logger." << std::endl;
 	
-		logger_ = new Logger("log_peer_" + std::to_string(my_peer_id_) + ".log");
 		running_ = true;
 		unchoke_thread_ = std::thread(&P2P_Client::unchoke_timer_loop, this);
 
-		
-		
+
+
+		std::cerr << "Peer " << my_peer_id_ << " initialized." << std::endl;
+
+		std::cerr << "Peer " << my_peer_id_ << " initialized." << std::endl;
+		std::cerr << "DEBUG: About to call start_listening()..." << std::endl;
+		int listen_result = start_listening();
+		if (listen_result < 0) {
+			std::cerr << "ERROR: start_listening() FAILED! Cannot accept connections!" << std::endl;
+			std::cerr << "Check if port " << port_ << " is already in use." << std::endl;
+			throw std::runtime_error("Failed to start listening on port " + std::to_string(port_));
+		}
+		std::cerr << "DEBUG: start_listening() succeeded on port " << port_ << std::endl;
+		std::cerr << "Peer " << my_peer_id_ << " now accepting connections." << std::endl;
+		std::cerr << "Peer " << my_peer_id_ << " now accepting connections." << std::endl;
 	}
 	~P2P_Client() {
 		running_ = false;
