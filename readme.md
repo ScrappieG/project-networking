@@ -9,8 +9,10 @@
 
 3. make sure directories are set up correctly
 
-`peerProcess.exe
-|-/src
-|-/peer_100*/file`
+   peerProcess.exe
+   
+   |-/src
 
-4. run ./peerProcess (number) in ascending order
+   |-/peer_100*/file
+
+5. run ./peerProcess (number) in ascending order
