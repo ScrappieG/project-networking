@@ -1,5 +1,8 @@
 #include "Peer.hpp"
 #include "Header.hpp"
+#include "Neighbor.hpp"
+#include "config.h"
+#include <cstddef>
 #include <cstdint>
 #include <map>
 #include <string>
@@ -34,6 +37,7 @@ int P2P_Client::listen_on(){
 	//Uses TCP, IPv4 (unsure if it should be IPv4)
 	int s = socket(AF_INET, SOCK_STREAM, 0);
 	if (s < 0) {
+		logger_->line("Peer " + std::to_string(my_peer_id_) + " failed to create listening socket.");
 		perror("failed while creating socket");
 		return -1;
 	}
@@ -41,8 +45,8 @@ int P2P_Client::listen_on(){
 	int opt = 1;
 	int set_s = setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 	if (set_s < 0){
-		perror("failed setting socket");
-		//maybe return idk
+		logger_->line("Peer " + std::to_string(my_peer_id_) + " failed to set socket options.");
+		debug_message("failed setting socket");
 	}
 		
 	sockaddr_in addr{};
@@ -50,17 +54,25 @@ int P2P_Client::listen_on(){
 	addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	addr.sin_port = htons(port_);
 	
-	if (bind(s, (sockaddr*)&addr, sizeof(addr)) < 0){
-		perror("Failed to bind");
+	if (::bind(s, (sockaddr*)&addr, sizeof(addr)) < 0){
+		debug_message("Failed to bind");
+		logger_->line("Peer " + std::to_string(my_peer_id_) + " failed to bind listening socket to port " + std::to_string(port_) + ".");
 		close(s);
 		return -1;
 	}
 
+	debug_message("bind() succeeded on socket " + std::to_string(s));
+
 	if (listen(s, 128) < 0){
-		perror("Failed to listen");
+		debug_message("Failed to listen");
+		logger_->line("Peer " + std::to_string(my_peer_id_) + " failed to listen on socket.");
 		close(s);
 		return -1;
 	}
+
+	logger_->line("Peer " + std::to_string(my_peer_id_) + " is listening for incoming connections on port " + std::to_string(port_) + ".");
+	debug_message("DEBUG listen_on(): Socket " + std::to_string(s) + " is now LISTENING on port " + std::to_string(port_));
+
 	return s;
 
 }
@@ -80,6 +92,7 @@ void P2P_Client::stop_listening() {
 	if (accept_thread_.joinable()){
 		accept_thread_.join();
 	}
+	logger_->line("Peer " + std::to_string(my_peer_id_) + " has stopped listening for incoming connections.");
 }
 
 
@@ -111,7 +124,9 @@ int P2P_Client::connect_to(std::string peer_ip, uint16_t peer_port){
 	freeaddrinfo(result);
 	if (s < 0){
 		perror("connect");
+		logger_->line("Peer " + std::to_string(my_peer_id_) + " failed to connect to " + peer_ip + ":" + std::to_string(peer_port) + ".");
 	}
+	logger_->line("Peer " + std::to_string(my_peer_id_) + " connected to " + peer_ip + ":" + std::to_string(peer_port) + ".");
 	return s;
 }
 
@@ -223,10 +238,6 @@ int P2P_Client::start_listening() {
 	if (listening_sock_ < 0){
 		return -1;
 	}
-
-	//this might be overkill and it may end up blowing up but im going to try to
-	//use threads since I believe we want to be able to listen and send at the same time
-	//this could become a problem but we'll see
 	
 	bool expected = false;
 	if (!accepting_.compare_exchange_strong(expected, true)){
@@ -246,6 +257,8 @@ bool P2P_Client::send_handshake(int sock, uint32_t peer_id){
 	std::memset(buf+18, 0, 10); //zeros
 	uint32_t net_peer_id = htonl(peer_id);
 	std::memcpy(buf+28, &net_peer_id, 4);
+
+	logger_->line("Peer " + std::to_string(my_peer_id_) + " sent handshake to Peer " + std::to_string(peer_id) + ".");
 	return send_exact(sock, buf, sizeof(buf));
 }
 
@@ -257,7 +270,7 @@ bool P2P_Client::read_handshake(int sock, std::string ip, uint16_t other_port, u
 	
 	const char f[19] = "P2PFILESHARINGPROJ";
 	
-	if (std::memcmp(start_buf, f, 18) != 0){//does first 18 bits == expected (P2P...)
+	if (std::memcmp(start_buf, f, 18) != 0){
 		return false;
 	}
 	
@@ -290,7 +303,8 @@ bool P2P_Client::read_handshake(int sock, std::string ip, uint16_t other_port, u
 		sock_to_peer_[sock] = peer_id;
 	}
 
-	return on_new_connection(sock, ip, other_port, expected_peer_id, has_file);
+	//return on_new_connection(sock, ip, other_port, expected_peer_id, has_file);
+	return true;
 }
 
 
@@ -311,7 +325,7 @@ bool P2P_Client::read_handshake(int sock, std::string ip, uint16_t other_port){
 		return false;
 	}
 
-	for (char c: zero_buf){
+	for (char c : zero_buf){
 		if (c != 0){
 		      return false;
 		}
@@ -337,7 +351,8 @@ bool P2P_Client::read_handshake(int sock, std::string ip, uint16_t other_port){
 		sock_to_peer_[sock] = peer_id;
 	}
 
-	return on_new_connection(sock, ip, other_port, peer_id, init_has_file);
+	//return on_new_connection(sock, ip, other_port, peer_id, init_has_file);
+	return true;
 	
 }
 
@@ -355,12 +370,16 @@ bool P2P_Client::on_new_connection(int sock, std::string ip, uint16_t port, uint
 	if (!send_message(BITFIELD, bitfield_.data(), bitfield_len, sock)){
 		return false;
 	}
+
+	logger_->line("Peer " + std::to_string(my_peer_id_) + " connected to Peer " + std::to_string(peer_id) + ".");
+	start_peer_message_loop(sock);
 	return true;
 	
 }
 
 //accepting incoming connections
 void P2P_Client::accept_loop(){
+	logger_->line("Peer " + std::to_string(my_peer_id_) + " started accepting incoming connections.");
 	while(accepting_){
 		
 		sockaddr_in other_addr{};
@@ -382,7 +401,7 @@ void P2P_Client::accept_loop(){
 		char ip_str[INET_ADDRSTRLEN] = {};
 		
 		if(!inet_ntop(AF_INET, &other_addr.sin_addr, ip_str, sizeof(ip_str))){
-			perror("inet_ntop");
+			debug_message("inet_ntop");
 			close(cfd);
 			continue;
 		}
@@ -397,7 +416,10 @@ void P2P_Client::accept_loop(){
 		if (!send_handshake(cfd, my_peer_id_)){
 			close(cfd);
 		}
-	
+
+		uint32_t remote_peer_id = sock_to_peer_[cfd];
+		bool has_file = false;
+		on_new_connection(cfd, ip, other_port, remote_peer_id, has_file);
 	}
 }
 
@@ -418,49 +440,275 @@ bool P2P_Client::connect_and_handshake(std::string ip, uint16_t other_port, int 
 		return false;
 	}
 
+	on_new_connection(conn, ip, other_port, peer_id, has_file);
+
 	return true;
 
 }
 
 bool P2P_Client::read_choke(int sock){
-	//TODO
+	Neighbor* n = find_neighbor_by_sock(sock);
+	if (n == nullptr){
+		return false;
+	}
+	n->set_choked(true);
+	logger_->line("Peer " + std::to_string(my_peer_id_) 
+		+ " received the 'choke' message from peer " 
+		+ std::to_string(n->peer_id()) + ".");
+	
+	{
+        std::lock_guard<std::mutex> lock(peers_mu_);
+        auto it = piece_to_peer_.begin();
+        while (it != piece_to_peer_.end()) {
+            if (it->second == n->peer_id()) {
+                requested_pieces_.erase(it->first);
+                it = piece_to_peer_.erase(it);
+            } else {
+                ++it;
+            }
+        }
+    }
 	return true;
 }
 
 bool P2P_Client::read_unchoke(int sock){
-	//TODO
+	Neighbor* n = find_neighbor_by_sock(sock);
+	if (n == nullptr){
+		return false;
+	}
+	n->set_choked(false);
+
+	logger_->line("Peer " + std::to_string(my_peer_id_) 
+		+ " received the 'unchoke' message from peer " 
+		+ std::to_string(n->peer_id()) + ".");
+	
+	request_next_piece(sock);
+
 	return true;
 }
 
 bool P2P_Client::read_interested(int sock){
-	//TODO
+	Neighbor* n = find_neighbor_by_sock(sock);
+	if (n == nullptr){
+		return false;
+	}
+	n->set_interested(true);
+	logger_->line("Peer " + std::to_string(my_peer_id_) + " received the 'interested' message from peer " + std::to_string(n->peer_id()) + ".");
+
 	return true;
 }
 
 bool P2P_Client::read_uninterested(int sock){
-	//TODO
+	Neighbor* n = find_neighbor_by_sock(sock);
+	if (n == nullptr){
+		return false;
+	}
+
+	n->set_interested(false);
+
+	logger_->line("Peer " + std::to_string(my_peer_id_) 
+		+ " received the 'not interested' message from peer " 
+		+ std::to_string(n->peer_id()) + ".");
+	
 	return true;
 }
 
 bool P2P_Client::read_have(int sock, std::vector<char> buf){
-	//TODO
+	if (buf.size() < 4){
+		return false;
+	}
+
+	u_int32_t piece_index_net = 0;
+	std::memcpy(&piece_index_net, buf.data(), 4);
+	int piece_index = static_cast<int>(ntohl(piece_index_net));
+
+	if ( piece_index < 0 || piece_index >= total_pieces_){
+		return false;
+	}
+	Neighbor* n = find_neighbor_by_sock(sock);
+
+	if (n == nullptr){
+		return false;
+	}
+	n->set_piece(piece_index, true);
+	logger_->line("Peer " + std::to_string(my_peer_id_) 
+		+ " received the 'have' message from peer " 
+		+ std::to_string(n->peer_id()) 
+		+ " for piece " + std::to_string(piece_index) + ".");
+	
+	bool need_piece = !has_piece(piece_index);
+	bool already_interested = n->interested();
+
+	if (need_piece && !already_interested){
+		if (!send_message(INTERESTED, nullptr, 0, sock)){
+			return false;
+		}
+		n->set_interested(true);
+		logger_->line("Peer " + std::to_string(my_peer_id_) 
+			+ " sent the 'interested' message to peer " 
+			+ std::to_string(n->peer_id()) + ".");
+	}
 	return true;
 }
 
 bool P2P_Client::read_request(int sock, std::vector<char> buf){
-	//TODO
+	if (buf.size() < 4){
+		return false;
+	}
+
+	uint32_t piece_index_net = 0;
+	std::memcpy(&piece_index_net, buf.data(), 4);
+	int piece_index = static_cast<int>(ntohl(piece_index_net));
+	if ( piece_index < 0 || piece_index >= total_pieces_){
+		return false;
+	}
+	
+	Neighbor* n = find_neighbor_by_sock(sock);
+	if (n == nullptr){
+		return false;
+	}
+	
+	std::vector<char> piece_data;
+    if (!read_piece_from_file(piece_index, piece_data)) {
+		logger_->event("ERROR", "Failed to read piece " + std::to_string(piece_index) + " from file for peer " + std::to_string(n->peer_id()) + ".");
+		debug_message("Failed to read piece " + std::to_string(piece_index) + " from file");
+        return false;
+    }
+
+	if (n->choked()){
+		debug_message("Peer " + std::to_string(my_peer_id_) + " received a request for piece " + std::to_string(piece_index) 
+			+ " from peer " + std::to_string(n->peer_id()) + " but is currently choked.");
+		
+		return true;
+	}
+
+	std::vector<char> payload(4 + piece_data.size());
+	uint32_t piece_net = htonl(static_cast<uint32_t>(piece_index));
+	std::memcpy(payload.data(), &piece_net, 4);
+    std::memcpy(payload.data() + 4, piece_data.data(), piece_data.size());
+
+	if (!send_message(PIECE, payload.data(), payload.size(), sock)) {
+		logger_->event("ERROR", "Failed to send piece " + std::to_string(piece_index) + " to peer " + std::to_string(n->peer_id()) + ".");
+		debug_message("Failed to send piece " + std::to_string(piece_index) + " to peer " + std::to_string(n->peer_id()));
+
+        return false;
+    }
+
 	return true;
 }
 
 bool P2P_Client::read_piece(int sock, std::vector<char> buf){
-	//TODO
+	if (buf.size() < 4){
+		return false;
+	}
+
+	uint32_t piece_index_net = 0;
+	std::memcpy(&piece_index_net, buf.data(), 4);
+	int piece_index = static_cast<int>(ntohl(piece_index_net));
+
+	if (piece_index >= static_cast<uint32_t>(total_pieces_)){
+		return false;
+	}
+	else if (piece_index < 0){
+		return false;
+	}
+
+	std::vector<char> piece_data(buf.begin() + 4, buf.end());
+
+	if (has_piece(piece_index)){
+		debug_message("Received piece we already have: " + std::to_string(piece_index));
+		logger_->event("WARNING", "Received piece we already have: " + std::to_string(piece_index));
+
+		return true;
+	}
+	if (!write_piece_to_file(piece_index, piece_data)){
+		debug_message("Failed to write piece to file: " + std::to_string(piece_index));
+		logger_->event("ERROR", "Failed to write piece to file: " + std::to_string(piece_index));
+
+		return false;
+	}
+	set_bitfield_bit(piece_index, true);
+
+	//send HAVE message to all neighbors
+	uint32_t have_index_net = htonl(piece_index);
+	{
+		std::lock_guard<std::mutex> lck(peers_mu_);
+		for (auto* n : neighbors_){
+			if (!send_message(HAVE, &have_index_net, sizeof(have_index_net), n->sock())){
+				debug_message("Failed to send HAVE message to peer: " + std::to_string(n->peer_id()));
+				logger_->event("ERROR", "Failed to send HAVE message to peer: " + std::to_string(n->peer_id()));
+			}
+		}
+	}
+
+	int pieces_have = 0;
+	for (size_t i = 0; i < total_pieces_; ++i){
+		if (has_piece(i)){
+			pieces_have++;
+		}
+	}
+	Neighbor* neighbor = find_neighbor_by_sock(sock);
+	if (neighbor) {
+		logger_->line("Peer " + std::to_string(my_peer_id_) 
+			+ " has downloaded piece " + std::to_string(piece_index) 
+			+ " from peer " + std::to_string(neighbor->peer_id())
+			+ ". Now has " + std::to_string(pieces_have) 
+			+ " pieces.");
+	}
+
+	if (has_complete_file()){
+		debug_message("Peer " + std::to_string(my_peer_id_) + " has downloaded the complete file.");
+		logger_->event("INFO", "Peer " + std::to_string(my_peer_id_) + " has downloaded the complete file.");
+	} else {
+		debug_message("Peer " + std::to_string(my_peer_id_) + " has not yet downloaded the complete file.");
+		logger_->event("INFO", "Peer " + std::to_string(my_peer_id_) + " has not yet downloaded the complete file.");
+
+		Neighbor* n = find_neighbor_by_sock(sock);
+		if (n && !n->choked()){
+			
+			{
+            std::lock_guard<std::mutex> lock(peers_mu_);
+            requested_pieces_.erase(piece_index);
+            piece_to_peer_.erase(piece_index);
+        	}
+			request_next_piece(sock);
+		}
+	}
+
 	return true;
 }
 
 bool P2P_Client::read_bitfield(int sock, std::vector<char> buf){
 	//updates the hasFile of the neighbor
 	set_hasFile_from_bf(sock, buf);
-	//TODO update the actual bitfield of the neighbor
+	
+	Neighbor* n = find_neighbor_by_sock(sock);
+	if (n == nullptr){
+		return false;
+	}
+
+	n->init_bitfield(total_pieces_);
+
+	for (size_t i = 0; i < buf.size() && i < n->get_bitfield().size(); i++) {
+        n->get_bitfield()[i] = static_cast<uint8_t>(buf[i]);
+    }
+
+	bool have_interesting_pieces = false;
+    for (int i = 0; i < total_pieces_; i++) {
+        if (!has_piece(i) && n->has_piece(i)) {
+            have_interesting_pieces = true;
+            break;
+        }
+    }
+
+	if (have_interesting_pieces) {
+        send_message(INTERESTED, nullptr, 0, sock);
+        n->set_interested(true);
+    } else {
+        send_message(UNINTERESTED, nullptr, 0, sock);
+        n->set_interested(false);
+    }
+
 	return true;
 }
 
@@ -498,8 +746,250 @@ bool P2P_Client::set_hasFile_from_bf(int sock, std::vector<char> buf){
 		return true;
 		}
 	return false;
-		
+}
 
+//reads bitfield from disk into memory
+bool P2P_Client::read_piece_from_file(int piece_index, std::vector<char>& piece_data){
+	std::lock_guard<std::mutex> lck(file_mu_);
+
+	size_t offset = static_cast<size_t>(piece_index) * piece_size_;
+
+	size_t this_piece_size = piece_size_;
+	if (piece_index == total_pieces_ - 1){
+		this_piece_size = file_size_ - (piece_index * piece_size_);
+	}
+
+	std::string file_path = "peer_" + std::to_string(my_peer_id_) + "/" + file_name_;
+    std::ifstream file(file_path, std::ios::binary);
+
+	if (!file){
+		return false;
+	}
+
+	file.seekg(offset, std::ios::beg);
+	if (!file){
+		return false;
+	}
+	piece_data.resize(this_piece_size);
+	file.read(piece_data.data(), this_piece_size);
+	if (!file){
+		return false;
+	}
+	return true;
 }
 
 	
+bool P2P_Client::write_piece_to_file(int piece_index, std::vector<char>& piece_data){
+	std::lock_guard<std::mutex> lck(file_mu_);
+
+	size_t offset = static_cast<size_t>(piece_index) * piece_size_;
+	size_t this_piece_size = piece_size_;
+	if (piece_index == total_pieces_ - 1){
+		this_piece_size = file_size_ - (piece_index * piece_size_);
+	}
+
+	if (piece_data.size() != this_piece_size){
+		return false;
+	}
+
+	std::string file_path = "peer_" + std::to_string(my_peer_id_) + "/" + file_name_;
+    std::fstream file(file_path, std::ios::binary | std::ios::in | std::ios::out);
+	
+	//if file does not exist create it
+	if (!file){
+		file.open(file_path, std::ios::binary | std::ios::out);
+		if (!file){
+			return false;
+		}
+		file.close();
+
+		//reopen in read/write mode
+		file.open(file_path,  std::ios::binary | std::ios::in | std::ios::out);
+		if (!file){
+			return false;
+		}
+	}
+
+	file.seekp(offset, std::ios::beg);
+	if (!file){
+		return false;
+	}
+
+	file.write(piece_data.data(), this_piece_size);
+	file.flush();
+
+	if (!file){
+		return false;
+	}
+	return true;
+}
+
+bool P2P_Client::has_piece_on_disk(int piece_index) const {
+	debug_message("has piece on disk(" + std::to_string(piece_index) + ") called");
+	std::string piece_file = Config::peerDirName(my_peer_id_) + "/" + file_name_;
+	debug_message("Checking file: " + piece_file);
+
+	std::lock_guard<std::mutex> lck(file_mu_);
+
+	size_t offset = static_cast<size_t>(piece_index) * piece_size_;
+	size_t this_piece_size = piece_size_;
+	if (piece_index == total_pieces_ - 1){
+		this_piece_size = file_size_ - (piece_index * piece_size_);
+	}
+
+	std::string file_path = "peer_" + std::to_string(my_peer_id_) + "/" + file_name_;
+	std::ifstream file(file_path, std::ios::binary);
+
+	if (!file){
+		return false;
+	}
+
+	file.seekg(0, std::ios::end);
+	size_t file_size = static_cast<size_t>(file.tellg());
+
+	if (file_size < offset + this_piece_size){
+		return false;
+	}
+	
+	return true;
+}
+
+void P2P_Client::set_bitfield_bit(int piece_index, bool value){
+	size_t byte = piece_index / 8;
+	size_t bit = 7 - (piece_index % 8);
+
+	if (byte >= bitfield_.size()){
+		return;
+	}
+
+	if (value){
+		bitfield_[byte] |= (1 << bit);
+	} else {
+		bitfield_[byte] &= ~(1 << bit);
+	}
+}
+
+bool P2P_Client::has_piece(int piece_index) const {
+	size_t byte = piece_index / 8;
+	size_t bit = 7 - (piece_index % 8);
+
+	if (byte >= bitfield_.size()){
+		return false;
+	}
+
+	unsigned char b = static_cast<unsigned char>(bitfield_[byte]);
+	return ((b >> bit) & 1) != 0;
+}
+
+bool P2P_Client::has_complete_file() const{
+	for (size_t i = 0; i < total_pieces_; ++i){
+		if (!has_piece(i)){
+			return false;
+		}
+	}
+	return true;
+}
+
+void P2P_Client::peer_message_loop(int sock){
+	while (true){
+		if (!read_message(sock)){
+			debug_message("Failed to read message from peer socket: " + std::to_string(sock));
+			logger_->event("ERROR", "Failed to read message from peer socket: " + std::to_string(sock));
+			{
+				std::lock_guard<std::mutex> lck(peers_mu_);
+				auto it = sock_to_peer_.find(sock);
+				if (it != sock_to_peer_.end()){
+					logger_->event("DISCONNECT", "Lost connection to peer " + std::to_string(it->second));
+					sock_to_peer_.erase(it);
+
+				}
+			}
+			break;
+		}
+	}
+}
+
+void P2P_Client::start_peer_message_loop(int sock){
+	peer_threads_.push_back(std::thread(&P2P_Client::peer_message_loop, this, sock));
+}
+
+void P2P_Client::request_next_piece(int sock){
+	Neighbor* n = find_neighbor_by_sock(sock);
+	if (n == nullptr){
+		return;
+	}
+
+	int piece_to_request = -1;
+	for (int i = 0; i < total_pieces_; ++i){
+		if (!has_piece(i) && n->has_piece(i)){
+			piece_to_request = i;
+			break;
+		}
+	}
+
+	if (piece_to_request == -1){
+		if (n->interested()) {
+            send_message(UNINTERESTED, nullptr, 0, sock);
+        }
+
+		return;
+	}
+
+	{
+        std::lock_guard<std::mutex> lock(peers_mu_);
+        requested_pieces_.insert(piece_to_request);
+        piece_to_peer_[piece_to_request] = n->peer_id();
+    }
+
+	uint32_t piece_net = htonl(static_cast<uint32_t>(piece_to_request));
+    send_message(REQUEST, &piece_net, sizeof(piece_net), sock);
+}
+
+void P2P_Client::unchoke_timer_loop() {
+    while (running_) {
+        std::this_thread::sleep_for(std::chrono::seconds(unchoking_interval_));
+        select_preferred_neighbors();
+    }
+}
+
+void P2P_Client::select_preferred_neighbors() {
+	std::lock_guard<std::mutex> lock(peers_mu_);
+
+	std::vector<Neighbor*> interested_neighbors;
+	for (auto* n : neighbors_) {
+		if (n->interested()) {
+			interested_neighbors.push_back(n);
+		}
+	}
+
+	std::set<uint32_t> current_preferred;
+
+	for (size_t i = 0; i < num_pref_neighbors_ && i < interested_neighbors.size(); ++i) {
+		current_preferred.insert(interested_neighbors[i]->peer_id());
+
+		if (interested_neighbors[i]->choked()) {
+			send_message(UNCHOKE, nullptr, 0, interested_neighbors[i]->sock());
+			interested_neighbors[i]->set_choked(false);
+		}
+
+	}
+
+	for (auto* n : neighbors_) {
+		if (current_preferred.find(n->peer_id()) == current_preferred.end()) {
+			if (!n->choked()) {
+				send_message(CHOKE, nullptr, 0, n->sock());
+				n->set_choked(true);
+			}
+		}
+
+	}
+
+	preferred_neighbors_ = std::move(current_preferred);
+	std::string neighbor_list;
+	for (auto id : preferred_neighbors_) {
+		if (!neighbor_list.empty()) neighbor_list += ",";
+		neighbor_list += std::to_string(id);
+	}
+	logger_->line("Peer " + std::to_string(my_peer_id_) + " has the preferred neighbors " + neighbor_list + ".");
+
+}
