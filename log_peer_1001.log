@@ -316,3 +316,265 @@
 2025-11-26 00:05:19 Peer 1001 has the preferred neighbors 1002,1003.
 2025-11-26 00:05:21 [ERROR] Failed to read message from peer socket: 6
 2025-11-26 00:05:21 [DISCONNECT] Lost connection to peer 1003
+2025-11-26 12:37:24 Peer 1001 is listening for incoming connections on port 6001.
+2025-11-26 12:37:24 Peer 1001 started accepting incoming connections.
+2025-11-26 12:37:29 Peer 1001 has the preferred neighbors .
+2025-11-26 12:37:34 Peer 1001 has the preferred neighbors .
+2025-11-26 12:37:39 Peer 1001 has the preferred neighbors .
+2025-11-26 12:37:44 Peer 1001 has the preferred neighbors .
+2025-11-26 12:50:52 Peer 1001 is listening for incoming connections on port 6001.
+2025-11-26 12:50:52 Peer 1001 started accepting incoming connections.
+2025-11-26 12:50:53 Peer 1001 sent handshake to Peer 1001.
+2025-11-26 12:50:53 Peer 1001 connected to Peer 1002.
+2025-11-26 12:50:53 Peer 1001 received the 'interested' message from peer 1002.
+2025-11-26 12:50:57 Peer 1001 has the preferred neighbors 1002.
+2025-11-26 12:50:58 Peer 1001 received the 'have' message from peer 1002 for piece 112.
+2025-11-26 12:50:58 Peer 1001 received the 'have' message from peer 1002 for piece 113.
+2025-11-26 12:50:58 Peer 1001 received the 'have' message from peer 1002 for piece 114.
+2025-11-26 12:50:58 Peer 1001 received the 'have' message from peer 1002 for piece 115.
+2025-11-26 12:50:58 Peer 1001 received the 'have' message from peer 1002 for piece 116.
+2025-11-26 12:50:58 Peer 1001 received the 'have' message from peer 1002 for piece 117.
+2025-11-26 12:50:58 Peer 1001 received the 'have' message from peer 1002 for piece 118.
+2025-11-26 12:50:58 Peer 1001 received the 'have' message from peer 1002 for piece 119.
+2025-11-26 12:50:58 Peer 1001 received the 'have' message from peer 1002 for piece 120.
+2025-11-26 12:50:58 Peer 1001 received the 'have' message from peer 1002 for piece 121.
+2025-11-26 12:50:58 Peer 1001 received the 'have' message from peer 1002 for piece 122.
+2025-11-26 12:50:58 Peer 1001 received the 'have' message from peer 1002 for piece 123.
+2025-11-26 12:50:58 Peer 1001 received the 'have' message from peer 1002 for piece 124.
+2025-11-26 12:50:58 Peer 1001 received the 'have' message from peer 1002 for piece 125.
+2025-11-26 12:50:58 Peer 1001 received the 'have' message from peer 1002 for piece 126.
+2025-11-26 12:50:58 Peer 1001 received the 'have' message from peer 1002 for piece 127.
+2025-11-26 12:50:58 Peer 1001 received the 'have' message from peer 1002 for piece 128.
+2025-11-26 12:50:58 Peer 1001 received the 'have' message from peer 1002 for piece 129.
+2025-11-26 12:50:58 Peer 1001 received the 'have' message from peer 1002 for piece 130.
+2025-11-26 12:50:58 Peer 1001 received the 'have' message from peer 1002 for piece 131.
+2025-11-26 12:50:58 Peer 1001 received the 'have' message from peer 1002 for piece 132.
+2025-11-26 12:50:58 Peer 1001 sent handshake to Peer 1001.
+2025-11-26 12:50:58 Peer 1001 connected to Peer 1003.
+2025-11-26 12:50:58 Peer 1001 received the 'interested' message from peer 1003.
+2025-11-26 12:50:58 Peer 1001 received the 'choke' message from peer 1002.
+2025-11-26 12:50:58 Peer 1001 received the 'have' message from peer 1003 for piece 112.
+2025-11-26 12:50:59 Peer 1001 received the 'have' message from peer 1003 for piece 113.
+2025-11-26 12:50:59 Peer 1001 received the 'have' message from peer 1003 for piece 114.
+2025-11-26 12:50:59 Peer 1001 received the 'have' message from peer 1003 for piece 115.
+2025-11-26 12:50:59 Peer 1001 received the 'have' message from peer 1003 for piece 116.
+2025-11-26 12:50:59 Peer 1001 received the 'have' message from peer 1003 for piece 117.
+2025-11-26 12:50:59 Peer 1001 received the 'have' message from peer 1003 for piece 118.
+2025-11-26 12:50:59 Peer 1001 received the 'have' message from peer 1003 for piece 119.
+2025-11-26 12:50:59 Peer 1001 received the 'have' message from peer 1003 for piece 120.
+2025-11-26 12:50:59 Peer 1001 received the 'have' message from peer 1003 for piece 121.
+2025-11-26 12:50:59 Peer 1001 received the 'have' message from peer 1003 for piece 122.
+2025-11-26 12:50:59 Peer 1001 received the 'have' message from peer 1003 for piece 123.
+2025-11-26 12:50:59 Peer 1001 received the 'have' message from peer 1003 for piece 124.
+2025-11-26 12:51:00 Peer 1001 received the 'have' message from peer 1003 for piece 125.
+2025-11-26 12:51:00 Peer 1001 received the 'have' message from peer 1003 for piece 126.
+2025-11-26 12:51:00 Peer 1001 received the 'have' message from peer 1003 for piece 127.
+2025-11-26 12:51:00 Peer 1001 received the 'have' message from peer 1003 for piece 128.
+2025-11-26 12:51:00 Peer 1001 received the 'have' message from peer 1003 for piece 129.
+2025-11-26 12:51:00 Peer 1001 received the 'have' message from peer 1003 for piece 130.
+2025-11-26 12:51:00 Peer 1001 received the 'have' message from peer 1003 for piece 131.
+2025-11-26 12:51:00 Peer 1001 received the 'have' message from peer 1003 for piece 132.
+2025-11-26 12:51:02 Peer 1001 has the preferred neighbors 1002,1003.
+2025-11-26 12:51:03 Peer 1001 received the 'choke' message from peer 1003.
+2025-11-26 12:51:03 Peer 1001 received the 'choke' message from peer 1002.
+2025-11-26 12:51:06 Peer 1001 sent handshake to Peer 1001.
+2025-11-26 12:51:06 Peer 1001 connected to Peer 1004.
+2025-11-26 12:51:06 Peer 1001 received the 'interested' message from peer 1004.
+2025-11-26 12:51:07 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 0.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 1.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 2.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 3.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 4.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 5.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 6.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 7.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 8.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 9.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 10.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 11.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 12.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 13.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 14.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 15.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 16.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 17.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 18.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 19.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 20.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 21.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 22.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 23.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 24.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 25.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 26.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 27.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 28.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 29.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 30.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 31.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 32.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 33.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 34.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 35.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 36.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 37.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 38.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 39.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 40.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 41.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 42.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 43.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 44.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 45.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 46.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 47.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 48.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 49.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 50.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 51.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 52.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 53.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 54.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 55.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 56.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 57.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 58.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 59.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 60.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 61.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 62.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 63.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 64.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 65.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 66.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 67.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 68.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 69.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 70.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 71.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 72.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 73.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 74.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 75.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 76.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 77.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 78.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 79.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 80.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 81.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 82.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 83.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 84.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 85.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 86.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 87.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 88.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 89.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 90.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 91.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 92.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 93.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 94.
+2025-11-26 12:51:07 Peer 1001 received the 'have' message from peer 1004 for piece 95.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 96.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 97.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 98.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 99.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 100.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 101.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 102.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 103.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 104.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 105.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 106.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 107.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 108.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 109.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 110.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 111.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 112.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 113.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 114.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 115.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 116.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 117.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 118.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 119.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 120.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 121.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 122.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 123.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 124.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 125.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 126.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 127.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 128.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 129.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 130.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 131.
+2025-11-26 12:51:08 Peer 1001 received the 'have' message from peer 1004 for piece 132.
+2025-11-26 12:51:11 Peer 1001 received the 'choke' message from peer 1004.
+2025-11-26 12:51:12 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:51:17 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:51:22 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:51:27 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:51:32 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:51:37 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:51:42 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:51:47 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:51:52 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:51:57 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:52:02 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:52:07 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:52:12 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:52:17 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:52:22 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:52:27 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:52:32 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:52:38 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:52:43 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:52:48 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:52:53 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:52:58 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:53:03 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:53:08 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:53:13 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:53:18 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:53:23 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:53:28 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:53:33 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:53:38 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:53:43 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:53:48 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:53:53 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:53:58 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:54:03 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:54:08 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:54:13 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:54:18 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:54:23 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:54:28 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:54:33 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:54:38 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:54:43 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:54:48 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:54:53 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:54:58 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:55:03 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:55:05 [ERROR] Failed to read message from peer socket: 7
+2025-11-26 12:55:05 [DISCONNECT] Lost connection to peer 1004
+2025-11-26 12:55:08 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 12:55:08 [ERROR] Failed to read message from peer socket: 5
+2025-11-26 12:55:08 [DISCONNECT] Lost connection to peer 1002
+2025-11-26 12:55:13 Peer 1001 has the preferred neighbors 1002,1003,1004.
+2025-11-26 23:15:25 Peer 1001 is listening for incoming connections on port 6001.
+2025-11-26 23:15:25 Peer 1001 started accepting incoming connections.
+2025-11-26 23:15:30 Peer 1001 has the preferred neighbors .
+2025-11-26 23:15:34 Peer 1001 sent handshake to Peer 1001.
+2025-11-26 23:15:34 Peer 1001 connected to Peer 1002.
+2025-11-26 23:15:34 Peer 1001 received the 'interested' message from peer 1002.
+2025-11-26 23:15:35 Peer 1001 has the preferred neighbors 1002.
+2025-11-26 23:15:39 Peer 1001 received the 'choke' message from peer 1002.
+2025-11-26 23:15:40 Peer 1001 has the preferred neighbors 1002.
+2025-11-26 23:15:45 Peer 1001 has the preferred neighbors 1002.

@@ -46,8 +46,7 @@ int P2P_Client::listen_on(){
 	int set_s = setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 	if (set_s < 0){
 		logger_->line("Peer " + std::to_string(my_peer_id_) + " failed to set socket options.");
-		perror("failed setting socket");
-		//maybe return idk
+		debug_message("failed setting socket");
 	}
 		
 	sockaddr_in addr{};
@@ -56,23 +55,23 @@ int P2P_Client::listen_on(){
 	addr.sin_port = htons(port_);
 	
 	if (::bind(s, (sockaddr*)&addr, sizeof(addr)) < 0){
-		perror("Failed to bind");
+		debug_message("Failed to bind");
 		logger_->line("Peer " + std::to_string(my_peer_id_) + " failed to bind listening socket to port " + std::to_string(port_) + ".");
 		close(s);
 		return -1;
 	}
 
-	std::cerr << "DEBUG: bind() succeeded on socket " << s << std::endl; 
+	debug_message("bind() succeeded on socket " + std::to_string(s));
 
 	if (listen(s, 128) < 0){
-		perror("Failed to listen");
+		debug_message("Failed to listen");
 		logger_->line("Peer " + std::to_string(my_peer_id_) + " failed to listen on socket.");
 		close(s);
 		return -1;
 	}
 
 	logger_->line("Peer " + std::to_string(my_peer_id_) + " is listening for incoming connections on port " + std::to_string(port_) + ".");
-	std::cerr << "DEBUG listen_on(): Socket " << s << " is now LISTENING on port " << port_ << std::endl;
+	debug_message("DEBUG listen_on(): Socket " + std::to_string(s) + " is now LISTENING on port " + std::to_string(port_));
 
 	return s;
 
@@ -402,7 +401,7 @@ void P2P_Client::accept_loop(){
 		char ip_str[INET_ADDRSTRLEN] = {};
 		
 		if(!inet_ntop(AF_INET, &other_addr.sin_addr, ip_str, sizeof(ip_str))){
-			perror("inet_ntop");
+			debug_message("inet_ntop");
 			close(cfd);
 			continue;
 		}
@@ -571,13 +570,15 @@ bool P2P_Client::read_request(int sock, std::vector<char> buf){
 	
 	std::vector<char> piece_data;
     if (!read_piece_from_file(piece_index, piece_data)) {
-        std::cerr << "Failed to read piece " << piece_index << " from file" << std::endl;
+		logger_->event("ERROR", "Failed to read piece " + std::to_string(piece_index) + " from file for peer " + std::to_string(n->peer_id()) + ".");
+		debug_message("Failed to read piece " + std::to_string(piece_index) + " from file");
         return false;
     }
 
 	if (n->choked()){
-		std::cerr << "Peer " << my_peer_id_ << " received a request for piece " << piece_index 
-			<< " from peer " << n->peer_id() << " but is currently choked." << std::endl;
+		debug_message("Peer " + std::to_string(my_peer_id_) + " received a request for piece " + std::to_string(piece_index) 
+			+ " from peer " + std::to_string(n->peer_id()) + " but is currently choked.");
+		
 		return true;
 	}
 
@@ -587,7 +588,9 @@ bool P2P_Client::read_request(int sock, std::vector<char> buf){
     std::memcpy(payload.data() + 4, piece_data.data(), piece_data.size());
 
 	if (!send_message(PIECE, payload.data(), payload.size(), sock)) {
-        std::cerr << "Failed to send piece " << piece_index << " to peer " << n->peer_id() << std::endl;
+		logger_->event("ERROR", "Failed to send piece " + std::to_string(piece_index) + " to peer " + std::to_string(n->peer_id()) + ".");
+		debug_message("Failed to send piece " + std::to_string(piece_index) + " to peer " + std::to_string(n->peer_id()));
+
         return false;
     }
 
@@ -613,13 +616,13 @@ bool P2P_Client::read_piece(int sock, std::vector<char> buf){
 	std::vector<char> piece_data(buf.begin() + 4, buf.end());
 
 	if (has_piece(piece_index)){
-		std::cerr << "Received piece we already have: " << piece_index << std::endl;
+		debug_message("Received piece we already have: " + std::to_string(piece_index));
 		logger_->event("WARNING", "Received piece we already have: " + std::to_string(piece_index));
 
 		return true;
 	}
 	if (!write_piece_to_file(piece_index, piece_data)){
-		std::cerr << "Failed to write piece to file: " << piece_index << std::endl;
+		debug_message("Failed to write piece to file: " + std::to_string(piece_index));
 		logger_->event("ERROR", "Failed to write piece to file: " + std::to_string(piece_index));
 
 		return false;
@@ -632,7 +635,7 @@ bool P2P_Client::read_piece(int sock, std::vector<char> buf){
 		std::lock_guard<std::mutex> lck(peers_mu_);
 		for (auto* n : neighbors_){
 			if (!send_message(HAVE, &have_index_net, sizeof(have_index_net), n->sock())){
-				std::cerr << "Failed to send HAVE message to peer: " << n->peer_id() << std::endl;
+				debug_message("Failed to send HAVE message to peer: " + std::to_string(n->peer_id()));
 				logger_->event("ERROR", "Failed to send HAVE message to peer: " + std::to_string(n->peer_id()));
 			}
 		}
@@ -654,10 +657,10 @@ bool P2P_Client::read_piece(int sock, std::vector<char> buf){
 	}
 
 	if (has_complete_file()){
-		std::cout << "Peer " << my_peer_id_ << " has downloaded the complete file." << std::endl;
+		debug_message("Peer " + std::to_string(my_peer_id_) + " has downloaded the complete file.");
 		logger_->event("INFO", "Peer " + std::to_string(my_peer_id_) + " has downloaded the complete file.");
 	} else {
-		std::cout << "Peer " << my_peer_id_ << " has not yet downloaded the complete file." << std::endl;
+		debug_message("Peer " + std::to_string(my_peer_id_) + " has not yet downloaded the complete file.");
 		logger_->event("INFO", "Peer " + std::to_string(my_peer_id_) + " has not yet downloaded the complete file.");
 
 		Neighbor* n = find_neighbor_by_sock(sock);
@@ -822,9 +825,9 @@ bool P2P_Client::write_piece_to_file(int piece_index, std::vector<char>& piece_d
 }
 
 bool P2P_Client::has_piece_on_disk(int piece_index) const {
-	std::cerr << "DEBUG: has_piece_on_disk(" << piece_index << ") called" << std::endl;
+	debug_message("has piece on disk(" + std::to_string(piece_index) + ") called");
 	std::string piece_file = Config::peerDirName(my_peer_id_) + "/" + file_name_;
-    std::cerr << "DEBUG: Checking file: " << piece_file << std::endl;
+	debug_message("Checking file: " + piece_file);
 
 	std::lock_guard<std::mutex> lck(file_mu_);
 
@@ -890,7 +893,7 @@ bool P2P_Client::has_complete_file() const{
 void P2P_Client::peer_message_loop(int sock){
 	while (true){
 		if (!read_message(sock)){
-			std::cerr << "Failed to read message from peer socket: " << sock << std::endl;
+			debug_message("Failed to read message from peer socket: " + std::to_string(sock));
 			logger_->event("ERROR", "Failed to read message from peer socket: " + std::to_string(sock));
 			{
 				std::lock_guard<std::mutex> lck(peers_mu_);

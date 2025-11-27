@@ -38,6 +38,8 @@ private:
 	int total_pieces_;
 	bool has_file_;
 
+	bool debug_ = false;
+
 	std::unordered_map<uint32_t, size_t> bytes_downloaded_from_;
 	std::unordered_map<uint32_t, std::chrono::steady_clock::time_point> last_download_time_;
 
@@ -75,6 +77,13 @@ private:
 	Neighbor* find_neighbor_by_sock(int sock);
 
 	void peer_message_loop(int sock);
+
+	void debug_message(const std::string& msg) const{
+		if (debug_){
+			std::cerr << "DEBUG: " << msg << std::endl;
+		}
+	}
+
 	
 public:
 	//Constructor
@@ -86,7 +95,8 @@ public:
 	    unsigned int file_size,
 	    unsigned int piece_size,
 	    bool has_file,
-	    std::vector<InitNeighborInfo> neighbor_info
+	    std::vector<InitNeighborInfo> neighbor_info,
+		bool debug = false
 	    ) 
 		: port_(port),
 		my_peer_id_(peer_id),
@@ -98,7 +108,8 @@ public:
 		file_name_(file_name),
 		file_size_(file_size),
 		piece_size_(piece_size),
-		accepting_(false) {
+		accepting_(false),
+		debug_(debug) {
 
 		total_pieces_ = ceiling_divide(file_size_, piece_size_);
 
@@ -135,20 +146,20 @@ public:
 
 		} else {
 			bitfield_.resize((total_pieces_ + 7) / 8, 0x00);
-
-			std::cerr << "DEBUG: Bitfield resized to " << bitfield_.size() << " bytes" << std::endl;
-    		std::cerr << "DEBUG: Checking " << total_pieces_ << " pieces..." << std::endl;
+			
+			debug_message("Bitfield resized to " + std::to_string(bitfield_.size()) + " bytes");
+			debug_message("Checking " + std::to_string(total_pieces_) + "pieces...");
     
 			// check disk for pieces we might already have
 			for (int i = 0; i < total_pieces_; i++) {
 				if (i % 10 == 0) {  // Every 10th piece
-            		std::cerr << "DEBUG: Checking piece " << i << "..." << std::endl;
+					debug_message("Checking piece " + std::to_string(i) + "...");
         		}
 				if (has_piece_on_disk(i)) {
 					set_bitfield_bit(i, true);
 				}
 			}
-			std::cerr << "DEBUG: Finished checking pieces" << std::endl;
+			debug_message("Bitfield initialization complete.");
 		}
 
 		std::cerr << "Peer " << my_peer_id_ << " setting up logger." << std::endl;
@@ -156,20 +167,15 @@ public:
 		running_ = true;
 		unchoke_thread_ = std::thread(&P2P_Client::unchoke_timer_loop, this);
 
-
-
-		std::cerr << "Peer " << my_peer_id_ << " initialized." << std::endl;
-
-		std::cerr << "Peer " << my_peer_id_ << " initialized." << std::endl;
-		std::cerr << "DEBUG: About to call start_listening()..." << std::endl;
+		debug_message("Peer " + std::to_string(my_peer_id_) + " about to start listening on port " + std::to_string(port_) + "...");
 		int listen_result = start_listening();
 		if (listen_result < 0) {
-			std::cerr << "ERROR: start_listening() FAILED! Cannot accept connections!" << std::endl;
-			std::cerr << "Check if port " << port_ << " is already in use." << std::endl;
+			logger_->event("ERROR", "start_listening() FAILED! Cannot accept connections!");
+			debug_message("ERROR: start_listening() FAILED! Cannot accept connections!");
+			debug_message("Check if port " + std::to_string(port_) + " is already in use.");
 			throw std::runtime_error("Failed to start listening on port " + std::to_string(port_));
 		}
-		std::cerr << "DEBUG: start_listening() succeeded on port " << port_ << std::endl;
-		std::cerr << "Peer " << my_peer_id_ << " now accepting connections." << std::endl;
+		debug_message("start_listening() succeeded on port " + std::to_string(port_) + ".");
 		std::cerr << "Peer " << my_peer_id_ << " now accepting connections." << std::endl;
 	}
 	~P2P_Client() {

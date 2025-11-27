@@ -11,9 +11,25 @@
 
 int main(int argc, char *argv[]){
     if (argc < 2){
-        std::cout << "Usage: peerProcess <peer ID>" << std::endl;
+        std::cout << "Usage: peerProcess <peer ID> ?<debug flag>" << std::endl;
         return 0;
     }
+	
+	if (argc > 3){
+		std::cerr << "[ERROR] Too many arguments." << std::endl;
+		return -1;
+	}
+
+	bool debug = false;
+	if (argc == 3){
+		if (std::string(argv[2]) == "debug"){
+			std::cout << "Debug mode enabled." << std::endl;
+			debug = true;
+		} else {
+			std::cerr << "[ERROR] Unknown debug flag: " << argv[2] << std::endl;
+			return -1;
+		}
+	}
 
     int peerId = 0;
 
@@ -78,7 +94,8 @@ int main(int argc, char *argv[]){
         cfg.common.fileSizeBytes,
         cfg.common.pieceSizeBytes,
         myInfo.hasFile,
-        nInfo
+        nInfo,
+		debug
     );
     
     std::cout << "Peer " << peerId << " is running on port " << myInfo.port << std::endl;

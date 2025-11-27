@@ -419,3 +419,14 @@
 2025-11-26 00:02:59 Peer 1002 received the 'have' message from peer 1003 for piece 130.
 2025-11-26 00:02:59 Peer 1002 received the 'have' message from peer 1003 for piece 131.
 2025-11-26 00:02:59 Peer 1002 received the 'have' message from peer 1003 for piece 132.
+2025-11-26 23:15:34 Peer 1002 connected to localhost:6001.
+2025-11-26 23:15:34 Peer 1002 sent handshake to Peer 1002.
+2025-11-26 23:15:34 Peer 1002 connected to Peer 1001.
+2025-11-26 23:15:34 Peer 1002 received the 'not interested' message from peer 1001.
+2025-11-26 23:15:34 Peer 1002 is listening for incoming connections on port 6002.
+2025-11-26 23:15:34 Peer 1002 started accepting incoming connections.
+2025-11-26 23:15:35 Peer 1002 received the 'unchoke' message from peer 1001.
+2025-11-26 23:15:39 Peer 1002 has the preferred neighbors .
+2025-11-26 23:15:40 Peer 1002 received the 'unchoke' message from peer 1001.
+2025-11-26 23:15:47 [ERROR] Failed to read message from peer socket: 4
+2025-11-26 23:15:47 [DISCONNECT] Lost connection to peer 1001
